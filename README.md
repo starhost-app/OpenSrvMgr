@@ -1,6 +1,6 @@
 # OpenSrvMgr
 
-OpenSrvMgr is a stateless Rust node daemon for the OpenSrvMgr Panel. It runs server workloads with Docker, exposes filesystem and console operations over gRPC, and provides jailed SFTP access to server volumes.
+OpenSrvMgr is a stateless Rust node daemon. It runs server workloads with Docker, exposes filesystem and console operations over gRPC, and provides jailed SFTP access to server volumes.
 
 The Panel remains the source of truth for server, template, and SFTP configuration. The node does not maintain a database or local server/template configuration files.
 
@@ -23,5 +23,6 @@ The Panel remains the source of truth for server, template, and SFTP configurati
 
 - [Setup Guide](Setup.md)
 - [API Specification](API_SPEC.md)
+- [Example Panel Proto](proto/panel.proto)
 - [Community Use License](LICENSE.md)
 

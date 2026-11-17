@@ -7,7 +7,7 @@ OpenSrvMgr requires:
 - Linux
 - Rust toolchain
 - Docker Engine and Docker CLI
-- A Panel implementing the callback service in `proto/node.proto`
+- A separate Panel implementing the example callback service in `proto/panel.proto`
 - Permission to access the Docker daemon
 - Permission to bind the selected gRPC and SFTP addresses
 
@@ -65,7 +65,7 @@ The paths can be changed with `--volumes-root`, `--backups-root`, and `--runtime
 
 ## Panel Integration
 
-The Panel must implement the `opensrvmgr.Panel` service from `proto/node.proto`:
+The separate Panel must implement the `opensrvmgr.Panel` service shown in the example-only `proto/panel.proto` file. The file is not compiled or used by OpenSrvMgr.
 
 - `GetServerConfig`
 - `GetTemplateConfig`
