@@ -1,0 +1,43 @@
+[package]
+name = "OpenSrvMgr"
+version = "0.1.0"
+edition = "2024"
+license-file = "LICENSE.md"
+
+[dependencies]
+anyhow = "1"
+subtle = "2"
+bcrypt = "0.15"
+chrono = { version = "0.4", default-features = false, features = ["clock"] }
+bollard = "0.16"
+bytes = "1"
+clap = { version = "4", features = ["derive"] }
+futures-util = "0.3"
+async-trait = "0.1"
+async-recursion = "1"
+prost = "0.13"
+serde = { version = "1", features = ["derive"] }
+sha2 = "0.10"
+tokio = { version = "1", features = ["full"] }
+tonic = { version = "0.12", features = ["transport"] }
+tokio-stream = "0.1"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+russh = "0.64"
+russh-sftp = "2.4"
+rand = "0.10"
+libc = "0.2"
+num_cpus = "1"
+zip = "2"
+tar = "0.4"
+flate2 = "1"
+zstd = "0.13"
+reqwest = { version = "0.12", default-features = false, features = ["rustls-tls"] }
+tempfile = "3"
+
+[[bin]]
+name = "OpenSrvMgr"
+path = "src/main.rs"
+
+[build-dependencies]
+tonic-build = "0.12"

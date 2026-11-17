@@ -1,0 +1,63 @@
+syntax = "proto3";
+package opensrvmgr;
+
+message Empty {}
+message Env { string key = 1; string value = 2; }
+message Port { string ip = 1; uint32 port = 2; }
+message Limits { int64 memory_bytes = 1; int64 swap_bytes = 2; int64 nano_cpus = 3; int64 pids_limit = 4; int64 disk_bytes = 5; int32 io_weight = 6; }
+message SftpUser { string username = 1; string password_hash = 2; bool read_only = 3; }
+message ServerConfig { bool exists = 1; string image = 2; string cmd = 3; repeated Env env = 4; repeated Port ports = 5; Limits limits = 6; string stop_command = 7; uint32 timeout_sec = 8; bool auto_restart = 9; repeated SftpUser sftp_users = 10; }
+message TemplateConfig { bool exists = 1; string image = 2; string entrypoint = 3; string script = 4; repeated Env env = 5; int64 memory_bytes = 6; }
+message Uuid { string uuid = 1; }
+enum PowerActionType { POWER_ACTION_UNSPECIFIED = 0; START = 1; STOP = 2; KILL = 3; }
+message PowerActionRequest { string uuid = 1; PowerActionType action = 2; }
+message ServerState { string uuid = 1; string container_id = 2; string status = 3; int32 exit_code = 4; bool oom_killed = 5; }
+message RunTemplateRequest { string server_uuid = 1; string template_uuid = 2; bool wipe_volume = 3; repeated Env extra_env = 4; }
+message AttachConsoleRequest { string uuid = 1; bytes stdin_data = 2; Resize resize = 3; }
+message Resize { uint32 cols = 1; uint32 rows = 2; }
+message StatsFrame { double cpu_percent = 1; int64 memory_bytes = 2; int64 memory_limit = 3; int64 disk_bytes = 4; int64 rx_bytes = 5; int64 tx_bytes = 6; string status = 7; int64 uptime_sec = 8; }
+message PathRequest { string uuid = 1; string path = 2; }
+message DirEntry { string name = 1; bool is_dir = 2; bool is_symlink = 3; int64 size = 4; int64 modified_unix = 5; uint32 mode = 6; }
+message ListDirResponse { repeated DirEntry entries = 1; }
+message Move { string from_path = 1; string to_path = 2; }
+message Copy { string from_path = 1; string to_path = 2; }
+message MovePathsRequest { string uuid = 1; repeated Move moves = 2; bool overwrite = 3; }
+message CopyPathsRequest { string uuid = 1; repeated Copy copies = 2; bool overwrite = 3; }
+message DeletePathsRequest { string uuid = 1; repeated string paths = 2; }
+message ReadFileRequest { string uuid = 1; string path = 2; int64 offset = 3; int64 limit = 4; }
+message BytesChunk { bytes data = 1; }
+message WriteFileRequest { string uuid = 1; string path = 2; bool truncate = 3; uint32 mode = 4; bytes data = 5; }
+message WriteFileResponse { int64 bytes_written = 1; }
+message ArchiveRequest { string uuid = 1; repeated string paths = 2; string dest_archive = 3; }
+message ExtractRequest { string uuid = 1; string archive_path = 2; string dest_dir = 3; }
+message BackupRequest { string uuid = 1; string backup_name = 2; bool overwrite = 3; }
+message BackupInfo { string backup_name = 1; int64 size_bytes = 2; int64 created_unix = 3; }
+message ListBackupsResponse { repeated BackupInfo backups = 1; }
+message NodeStats { int64 total_ram_bytes = 1; int64 used_ram_bytes = 2; int64 total_disk_bytes = 3; int64 used_disk_bytes = 4; double cpu_usage_percent = 5; uint32 cpu_cores = 6; int64 uptime_sec = 7; string daemon_version = 8; }
+message Event { string uuid = 1; string event = 2; int32 exit_code = 3; bool oom_killed = 4; int64 timestamp_unix = 5; }
+service Node {
+ rpc PowerAction(PowerActionRequest) returns (ServerState);
+ rpc DeleteServer(Uuid) returns (Empty);
+ rpc RunTemplate(RunTemplateRequest) returns (stream BytesChunk);
+ rpc AttachConsole(stream AttachConsoleRequest) returns (stream BytesChunk);
+ rpc StreamStats(Uuid) returns (stream StatsFrame);
+ rpc ListDir(PathRequest) returns (ListDirResponse);
+ rpc StatPath(PathRequest) returns (DirEntry);
+ rpc CreateDir(PathRequest) returns (Empty);
+ rpc MovePaths(MovePathsRequest) returns (Empty);
+ rpc CopyPaths(CopyPathsRequest) returns (Empty);
+ rpc DeletePaths(DeletePathsRequest) returns (Empty);
+ rpc ReadFile(ReadFileRequest) returns (stream BytesChunk);
+ rpc WriteFile(stream WriteFileRequest) returns (WriteFileResponse);
+ rpc CompressArchive(ArchiveRequest) returns (Empty);
+ rpc ExtractArchive(ExtractRequest) returns (Empty);
+ rpc CreateBackup(BackupRequest) returns (BackupInfo);
+ rpc ListBackups(Uuid) returns (ListBackupsResponse);
+ rpc RestoreBackup(BackupRequest) returns (Empty);
+ rpc GetNodeStats(Empty) returns (NodeStats);
+}
+service Panel {
+ rpc GetServerConfig(Uuid) returns (ServerConfig);
+ rpc GetTemplateConfig(Uuid) returns (TemplateConfig);
+ rpc ReportContainerEvent(Event) returns (Empty);
+}
