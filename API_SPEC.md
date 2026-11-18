@@ -484,6 +484,14 @@ Service name: `opensrvmgr.Panel`
 
 These methods are called by OpenSrvMgr. They are implemented by the Panel.
 
+OpenSrvMgr authenticates every outbound Panel RPC with:
+
+```text
+authorization: Bearer <panel-key>
+```
+
+The key is supplied at startup with `--panel-key`. The Panel must validate this header and reject requests with an invalid or missing token.
+
 ## `GetServerConfig`
 
 ```protobuf

@@ -14,6 +14,8 @@ pub struct Args {
     pub panel_url: String,
     #[arg(long, value_name = "KEY")]
     pub api_key: String,
+    #[arg(long, value_name = "KEY")]
+    pub panel_key: String,
     #[arg(long, default_value = "/var/lib/OpenSrvMgr/volumes")]
     pub volumes_root: PathBuf,
     #[arg(long, default_value = "/var/lib/OpenSrvMgr/runtime")]
@@ -37,6 +39,9 @@ pub fn validate(args: &Args) -> Result<()> {
     }
     if args.api_key.trim().is_empty() {
         bail!("--api-key cannot be empty");
+    }
+    if args.panel_key.trim().is_empty() {
+        bail!("--panel-key cannot be empty");
     }
     std::fs::create_dir_all(&args.volumes_root)
         .with_context(|| format!("create {}", args.volumes_root.display()))?;

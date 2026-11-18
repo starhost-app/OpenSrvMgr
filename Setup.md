@@ -95,16 +95,14 @@ OpenSrvMgr \
   --sftp-bind 0.0.0.0:2022 \
   --grpc-bind 0.0.0.0:50051 \
   --panel-url http://panel.example.internal:50052 \
-  --api-key 'generate-a-long-random-secret'
+  --api-key 'generate-a-long-random-secret' \
+  --panel-key 'separate-long-random-secret'
 ```
 
-There are no default values for the network binds. The API key is passed only through `--api-key` and must be kept private.
+There are no default values for the network binds. Both `--api-key` and `--panel-key` are required and must be kept private.
 
-Every Node gRPC request must include:
-
-```text
-authorization: Bearer generate-a-long-random-secret
-```
+`--api-key` authenticates incoming Node gRPC requests from the Panel.
+`--panel-key` is sent as `authorization: Bearer` on every outbound callback to the Panel.
 
 The gRPC API should be restricted to the Panel or private management network. Use TLS or mTLS at the network boundary when traffic crosses an untrusted network.
 

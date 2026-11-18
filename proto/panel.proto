@@ -1,6 +1,9 @@
 // Example-only Panel callback contract for OpenSrvMgr.
 // This file is not compiled or used by the OpenSrvMgr node binary.
 // A separate Panel service can implement these RPCs in any language.
+//
+// Authentication: OpenSrvMgr sends `authorization: Bearer <panel-key>` on every
+// Panel RPC. The Panel must validate this metadata before responding.
 
 syntax = "proto3";
 package opensrvmgr;

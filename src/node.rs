@@ -39,6 +39,7 @@ pub struct App {
     args: Args,
     docker: Docker,
     panel_url: String,
+    panel_key: String,
     _lock: Arc<Mutex<()>>,
 }
 
@@ -47,6 +48,7 @@ pub async fn serve(args: Args, docker: Docker) -> Result<()> {
         args: args.clone(),
         docker,
         panel_url: args.panel_url.clone(),
+        panel_key: args.panel_key.clone(),
         _lock: Arc::new(Mutex::new(())),
     };
     let api_key = args.api_key.clone();
@@ -202,31 +204,46 @@ impl App {
     pub(crate) async fn server_config_public(&self, uuid: &str) -> Result<ServerConfig, Status> {
         self.server_config(uuid).await
     }
-    async fn server_config(&self, uuid: &str) -> Result<ServerConfig, Status> {
-        let mut panel = proto::panel_client::PanelClient::connect(self.panel_url.clone())
+    async fn panel_client(
+        &self,
+    ) -> Result<proto::panel_client::PanelClient<tonic::transport::Channel>, Status> {
+        let channel = tonic::transport::Channel::from_shared(self.panel_url.clone())
+            .map_err(err)?
+            .connect()
             .await
             .map_err(err)?;
-        panel
-            .get_server_config(Uuid { uuid: uuid.into() })
+        Ok(proto::panel_client::PanelClient::new(channel))
+    }
+    fn panel_auth(&self) -> tonic::metadata::MetadataValue<tonic::metadata::Ascii> {
+        tonic::metadata::MetadataValue::try_from(format!("Bearer {}", self.panel_key))
+            .expect("panel_key is valid ASCII")
+    }
+    async fn server_config(&self, uuid: &str) -> Result<ServerConfig, Status> {
+        let mut c = self.panel_client().await?;
+        let mut req = tonic::Request::new(Uuid { uuid: uuid.into() });
+        req.metadata_mut()
+            .insert("authorization", self.panel_auth());
+        c.get_server_config(req)
             .await
             .map(|r| r.into_inner())
             .map_err(err)
     }
     async fn template_config(&self, uuid: &str) -> Result<TemplateConfig, Status> {
-        let mut panel = proto::panel_client::PanelClient::connect(self.panel_url.clone())
-            .await
-            .map_err(err)?;
-        panel
-            .get_template_config(Uuid { uuid: uuid.into() })
+        let mut c = self.panel_client().await?;
+        let mut req = tonic::Request::new(Uuid { uuid: uuid.into() });
+        req.metadata_mut()
+            .insert("authorization", self.panel_auth());
+        c.get_template_config(req)
             .await
             .map(|r| r.into_inner())
             .map_err(err)
     }
     async fn report(&self, event: Event) {
-        if let Ok(mut panel) =
-            proto::panel_client::PanelClient::connect(self.panel_url.clone()).await
-        {
-            let _ = panel.report_container_event(event).await;
+        if let Ok(mut c) = self.panel_client().await {
+            let mut req = tonic::Request::new(event);
+            req.metadata_mut()
+                .insert("authorization", self.panel_auth());
+            let _ = c.report_container_event(req).await;
         }
     }
 }
